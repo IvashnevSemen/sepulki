@@ -4,7 +4,7 @@ from random import randint
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, x, y, hp):
+    def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
         self.frames = []
         self.cut_sheet(sheet, columns, rows)
@@ -121,6 +121,7 @@ tbl_y_pos = 100
 all_sprites = pygame.sprite.Group()
 cross_group = pygame.sprite.Group()
 boxes = pygame.sprite.Group()
+dead = pygame.sprite.Group()
 
 m1_x_pos = 500
 m1_y_pos = height - m_height - 200
@@ -162,21 +163,24 @@ if __name__ == '__main__':
 
     # draw player
     sprite.image = pygame.image.load('worker.png')
-    player = Player(sprite.image, 4, 4, width // 2, height // 2, 3)
+    player = Player(sprite.image, 4, 4, width // 2, height // 2)
 
     # draw box
     sprite.image = pygame.transform.scale(pygame.image.load('box.png'), (40, 40))
-    # box = Box(sprite.image, m1_x_pos + m_width // 2 - 10, m1_y_pos + 20)
 
-    up_line = UpLine(10, 0, 0)
+    up_line = UpLine(5, 0, 0)
 
     all_sprites.add(player)
-    # boxes.add(box)
 
     flPause = False
     running = True
     t = 0
     while running:
+
+        game = pygame.sprite.Sprite()
+        game.image = pygame.image.load('gameover.png')
+        game.rect = game.image.get_rect()
+        dead.add(game)
 
         a = randint(1, 3)
         screen.fill("black")
@@ -235,6 +239,7 @@ if __name__ == '__main__':
                 if player.dir == 3:
                     item.rect.x = player.rect.x
                     item.rect.y = player.rect.y - item.rect.h
+
             all_sprites.draw(screen)
             if pygame.sprite.collide_mask(item, table) and key[K_SPACE]:
                 item.kill()
@@ -257,9 +262,11 @@ if __name__ == '__main__':
                 cross_image.kill()
                 item.kill()
                 up_line.update(l=-1)
-
         all_sprites.draw(screen)
+        if up_line.lives == 0:
+            dead.draw(screen)
+            running = False
         clock.tick(FPS)
-
         pygame.display.flip()
+        clock.tick(10000000000 * 10000)
 pygame.quit()
