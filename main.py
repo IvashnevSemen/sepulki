@@ -57,6 +57,7 @@ class Box(pygame.sprite.Sprite):
         self.y = y
         self.speed = 5
         self.visible = True
+        self.in_hand = False
 
     def update(self):
         pass
@@ -133,7 +134,21 @@ if __name__ == '__main__':
         for item in boxes:
             if pygame.sprite.collide_mask(player, item) and player.is_hold == False:
                 player.is_hold = True
-                item.rect = item.rect.move(200, 200)
+                item.in_hand = True
+            if item.in_hand:
+                if player.dir == 0:
+                    item.rect.x = player.rect.x - item.rect.w
+                    item.rect.y = player.rect.y
+                if player.dir == 1:
+                    item.rect.x = player.rect.x
+                    item.rect.y = player.rect.y + player.rect.h
+                if player.dir == 2:
+                    item.rect.x = player.rect.x + player.rect.w
+                    item.rect.y = player.rect.y
+                if player.dir == 3:
+                    item.rect.x = player.rect.x
+                    item.rect.y = player.rect.y - item.rect.h
+
         all_sprites.draw(screen)
         clock.tick(fps)
 
