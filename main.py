@@ -51,7 +51,8 @@ class Box(pygame.sprite.Sprite):
     def __init__(self, sheet, x, y):
         super().__init__(all_sprites)
         self.image = sheet
-        self.rect = pygame.Rect(0, 0, sheet.get_width(), sheet.get_height())
+        self.rect = pygame.Rect(x, y, sheet.get_width(), sheet.get_height())
+        self.mask = pygame.mask.from_surface(self.image)
         self.x = x
         self.y = y
         self.speed = 5
@@ -79,6 +80,7 @@ class UpLine:
 TABLE = (100, 100, 100, 100)
 
 all_sprites = pygame.sprite.Group()
+boxes = pygame.sprite.Group()
 
 
 if __name__ == '__main__':
@@ -100,6 +102,7 @@ if __name__ == '__main__':
     box = Box(sprite.image, 100, 100)
 
     all_sprites.add(player)
+    boxes.add(box)
 
     running = True
     while running:
@@ -127,6 +130,10 @@ if __name__ == '__main__':
             player.update()
         else:
             player.update()
+        for item in boxes:
+            if pygame.sprite.collide_mask(player, item) and player.is_hold == False:
+                player.is_hold = True
+                item.rect = item.rect.move(200, 200)
         all_sprites.draw(screen)
         clock.tick(fps)
 
