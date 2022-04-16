@@ -111,7 +111,8 @@ if __name__ == '__main__':
             player.move(0, -10)
             player.dir = 3
             player.update()
-        player.update()
+        else:
+            player.update()
         all_sprites.draw(screen)
         clock.tick(fps)
 
