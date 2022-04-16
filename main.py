@@ -2,15 +2,6 @@ import pygame
 from pygame.locals import *
 
 
-class Machine(pygame.sprite.Sprite):
-    def init(self, mach_img, x, y):
-        super().__init__(all_sprites)
-        self.image = mach_img
-        self.rect = pygame.Rect(x, y, mach_img.get_width(), mach_img.get_height())
-        self.x = x
-        self.y = y
-
-
 class Player(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y, hp):
         super().__init__(all_sprites)
@@ -24,6 +15,8 @@ class Player(pygame.sprite.Sprite):
         self.dir = 0
         self.is_hold = False
         self.hp = hp
+        self.score = 0
+        self.b_count = 0
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -65,12 +58,18 @@ class Box(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.x = x
         self.y = y
-        self.speed = 5
+        self.speed = 1
         self.visible = True
         self.in_hand = False
 
-    def update(self):
-        pass
+
+class Machine(pygame.sprite.Sprite):
+    def __init__(self, mach_img, x, y):
+        super().__init__(all_sprites)
+        self.image = mach_img
+        self.rect = pygame.Rect(x, y, mach_img.get_width(), mach_img.get_height())
+        self.x = x
+        self.y = y
 
 
 class UpLine:
@@ -88,55 +87,97 @@ class UpLine:
             self.score += s
         pygame.draw.rect(screen, 'white', (0, 0, width // 3, 100), 1)
         pygame.draw.rect(screen, 'white', (width // 3, 0, width // 3, 100), 1)
+        pygame.draw.rect(screen, 'white', (width // 3 * 2, 0, width // 3, 100), 1)
 
+        screen.blit(hp_text, (width // 6 - 40, 50))
+        screen.blit(score_text, (width * 4 // 5 - 40, 50))
+        screen.blit(count_text, (width // 2 - 80, 50))
 
 
 TABLE = (100, 100, 100, 100)
 
+size = width, height = 800, 600
+
+m_width = 300
+m_height = 100
+
+tbl_width = 150
+tbl_height = 100
+tbl_x_pos = width // 2
+tbl_y_pos = 100
+
 all_sprites = pygame.sprite.Group()
 boxes = pygame.sprite.Group()
 
+m1_x_pos = 500
+m1_y_pos = height // 3
+m2_y_pos = m1_y_pos + 150
+m3_y_pos = m1_y_pos + 300
 
 if __name__ == '__main__':
     pygame.init()
+    pygame.font.init()
     pygame.display.set_caption('Сепульки')
 
     size = width, height = 800, 600
     screen = pygame.display.set_mode(size)
+    font = pygame.font.Font(None, 30)
 
-    fps = 5
+    FPS = 8
+    vol = 0.05
     clock = pygame.time.Clock()
 
-    sprite = pygame.sprite.Sprite()
-    sprite.image = pygame.image.load('worker.png')
-    player = Player(sprite.image, 4, 4, 0, 0, 5)
+    # music
+    pygame.mixer.music.load("was_wollen_wir_trinken.mp3")
+    pygame.mixer.music.set_volume(vol)
+    pygame.mixer.music.play()
 
+    # draw table
     sprite = pygame.sprite.Sprite()
+    sprite.image = pygame.transform.scale(pygame.image.load('table.png'), (tbl_width, tbl_height))
+    table = Machine(sprite.image, tbl_x_pos - tbl_width // 2, tbl_y_pos)
+
+    # draw machines
+    sprite.image = pygame.transform.scale(pygame.image.load('machine.png'), (m_width, m_height))
+    machine1 = Machine(sprite.image, m1_x_pos, m1_y_pos)
+    machine2 = Machine(sprite.image, m1_x_pos, m2_y_pos)
+    machine3 = Machine(sprite.image, m1_x_pos, m3_y_pos)
+
+    # draw player
+    sprite.image = pygame.image.load('worker.png')
+    player = Player(sprite.image, 4, 4, width // 2, height // 2, 3)
+
+    # draw box
     sprite.image = pygame.transform.scale(pygame.image.load('box.png'), (40, 40))
-    box = Box(sprite.image, 100, 100)
+    box = Box(sprite.image, m1_x_pos + m_width // 2 - 10, m1_y_pos + 20)
 
     up_line = UpLine(player.hp, 0, 0)
 
     all_sprites.add(player)
     boxes.add(box)
 
-    tbl_width = 150
-    tbl_height = 100
-    tbl_x_pos = width // 2
-    tbl_y_pos = 100
+    hp_text = font.render(f'HP: {player.hp}', True, (255, 0, 0))
+    score_text = font.render(f'Счёт: {player.score}', True, (0, 255, 0))
+    count_text = font.render(f'Собрано сепулек: {player.b_count}', True, (0, 255, 255))
 
-    sprite = pygame.sprite.Sprite()
-    sprite.image = pygame.transform.scale(pygame.image.load('table.png'), (tbl_width, tbl_height))
-    table = Machine(sprite.image, tbl_x_pos - tbl_width // 2, tbl_y_pos)
-
+    flPause = False
     running = True
     while running:
         screen.fill("black")
+
+        if not player.is_hold:
+            box.rect.x -= box.speed
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
         key = pygame.key.get_pressed()
+        if key[K_p]:
+            flPause = not flPause
+            if flPause:
+                pygame.mixer.music.pause()
+            else:
+                pygame.mixer.music.unpause()
         if key[K_LEFT]:
             player.move(-10, 0)
             player.dir = 0
@@ -157,7 +198,8 @@ if __name__ == '__main__':
             player.update()
         up_line.update()
         for item in boxes:
-            if pygame.sprite.collide_mask(player, item) and player.is_hold == False:
+
+            if pygame.sprite.collide_mask(player, item) and player.is_hold == False and key[K_SPACE]:
                 player.is_hold = True
                 item.in_hand = True
             if item.in_hand:
@@ -173,10 +215,15 @@ if __name__ == '__main__':
                 if player.dir == 3:
                     item.rect.x = player.rect.x
                     item.rect.y = player.rect.y - item.rect.h
+            if pygame.sprite.collide_mask(item, table) and key[K_SPACE]:
+                item.kill()
+                player.is_hold = False
+                item.in_hand = False
+                up_line.update(b=1, s=30)
 
 
         all_sprites.draw(screen)
-        clock.tick(fps)
+        clock.tick(FPS)
 
         pygame.display.flip()
 pygame.quit()
