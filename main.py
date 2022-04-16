@@ -3,7 +3,7 @@ from pygame.locals import *
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, x, y):
+    def __init__(self, sheet, columns, rows, x, y, hp):
         super().__init__(all_sprites)
         self.frames = []
         self.cut_sheet(sheet, columns, rows)
@@ -14,6 +14,7 @@ class Player(pygame.sprite.Sprite):
         self.y = y
         self.dir = 0
         self.is_hold = False
+        self.hp = hp
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -76,6 +77,9 @@ class UpLine:
             self.boxes += b
         if s != 0:
             self.score += s
+        pygame.draw.rect(screen, 'white', (0, 0, width // 3, 100), 1)
+        pygame.draw.rect(screen, 'white', (width // 3, 0, width // 3, 100), 1)
+
 
 
 TABLE = (100, 100, 100, 100)
@@ -96,14 +100,21 @@ if __name__ == '__main__':
 
     sprite = pygame.sprite.Sprite()
     sprite.image = pygame.image.load('worker.png')
-    player = Player(sprite.image, 4, 4, 0, 0)
+    player = Player(sprite.image, 4, 4, 0, 0, 5)
 
     sprite = pygame.sprite.Sprite()
     sprite.image = pygame.transform.scale(pygame.image.load('box.png'), (40, 40))
     box = Box(sprite.image, 100, 100)
 
+    up_line = UpLine(player.hp, 0, 0)
+
     all_sprites.add(player)
     boxes.add(box)
+
+    table = pygame.sprite.Sprite()
+    table.image = pygame.image.load('table.png')
+    table.rect.x = width // 2 - table.rect.w // 2
+    table.rect.x = width // 2 - table.rect.w // 2
 
     running = True
     while running:
@@ -131,6 +142,7 @@ if __name__ == '__main__':
             player.update()
         else:
             player.update()
+        up_line.update()
         for item in boxes:
             if pygame.sprite.collide_mask(player, item) and player.is_hold == False:
                 player.is_hold = True
@@ -148,6 +160,7 @@ if __name__ == '__main__':
                 if player.dir == 3:
                     item.rect.x = player.rect.x
                     item.rect.y = player.rect.y - item.rect.h
+
 
         all_sprites.draw(screen)
         clock.tick(fps)
