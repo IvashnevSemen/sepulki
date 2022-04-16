@@ -1,5 +1,6 @@
 import pygame
 from pygame.locals import *
+from random import randint
 
 
 class Player(pygame.sprite.Sprite):
@@ -14,9 +15,6 @@ class Player(pygame.sprite.Sprite):
         self.y = y
         self.dir = 0
         self.is_hold = False
-        self.hp = hp
-        self.score = 0
-        self.b_count = 0
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -58,7 +56,7 @@ class Box(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.x = x
         self.y = y
-        self.speed = 1
+        self.speed = 5
         self.visible = True
         self.in_hand = False
 
@@ -72,6 +70,13 @@ class Machine(pygame.sprite.Sprite):
         self.y = y
 
 
+class Cross(pygame.sprite.Sprite):
+    def __init__(self, sheet, x, y):
+        super().__init__(all_sprites)
+        self.image = sheet
+        self.rect = pygame.Rect(x, y, sheet.get_width(), sheet.get_height())
+
+
 class UpLine:
     def __init__(self, lives, boxes, score):
         self.lives = lives
@@ -79,6 +84,7 @@ class UpLine:
         self.score = score
 
     def update(self, l=0, b=0, s=0):
+        global hp, score, b_count
         if l != 0:
             self.lives += l
         if b != 0:
@@ -89,12 +95,18 @@ class UpLine:
         pygame.draw.rect(screen, 'white', (width // 3, 0, width // 3, 100), 1)
         pygame.draw.rect(screen, 'white', (width // 3 * 2, 0, width // 3, 100), 1)
 
+        hp_text = font.render(f'Попытки: {self.lives}', True, (255, 0, 0))
+        score_text = font.render(f'Счёт: {self.score}', True, (0, 255, 0))
+        count_text = font.render(f'Собрано сепулек: {self.boxes}', True, (0, 255, 255))
+
         screen.blit(hp_text, (width // 6 - 40, 50))
         screen.blit(score_text, (width * 4 // 5 - 40, 50))
         screen.blit(count_text, (width // 2 - 80, 50))
 
 
-TABLE = (100, 100, 100, 100)
+def draw_cross():
+    pass
+
 
 size = width, height = 800, 600
 
@@ -107,12 +119,15 @@ tbl_x_pos = width // 2
 tbl_y_pos = 100
 
 all_sprites = pygame.sprite.Group()
+cross_group = pygame.sprite.Group()
 boxes = pygame.sprite.Group()
 
 m1_x_pos = 500
-m1_y_pos = height // 3
-m2_y_pos = m1_y_pos + 150
-m3_y_pos = m1_y_pos + 300
+m1_y_pos = height - m_height - 200
+m2_y_pos = height - m_height - 100
+m3_y_pos = height - m_height
+
+dead_zone = (0, 200, width - m_width, height)
 
 if __name__ == '__main__':
     pygame.init()
@@ -130,8 +145,10 @@ if __name__ == '__main__':
     # music
     pygame.mixer.music.load("was_wollen_wir_trinken.mp3")
     pygame.mixer.music.set_volume(vol)
-    pygame.mixer.music.play()
+    pygame.mixer.music.play(-1)
 
+    cross = pygame.sprite.Sprite()
+    cross.image = pygame.transform.scale(pygame.image.load('cross.png'), (40, 40))
     # draw table
     sprite = pygame.sprite.Sprite()
     sprite.image = pygame.transform.scale(pygame.image.load('table.png'), (tbl_width, tbl_height))
@@ -149,24 +166,25 @@ if __name__ == '__main__':
 
     # draw box
     sprite.image = pygame.transform.scale(pygame.image.load('box.png'), (40, 40))
-    box = Box(sprite.image, m1_x_pos + m_width // 2 - 10, m1_y_pos + 20)
+    # box = Box(sprite.image, m1_x_pos + m_width // 2 - 10, m1_y_pos + 20)
 
-    up_line = UpLine(player.hp, 0, 0)
+    up_line = UpLine(10, 0, 0)
 
     all_sprites.add(player)
-    boxes.add(box)
-
-    hp_text = font.render(f'HP: {player.hp}', True, (255, 0, 0))
-    score_text = font.render(f'Счёт: {player.score}', True, (0, 255, 0))
-    count_text = font.render(f'Собрано сепулек: {player.b_count}', True, (0, 255, 255))
+    # boxes.add(box)
 
     flPause = False
     running = True
+    t = 0
     while running:
-        screen.fill("black")
 
-        if not player.is_hold:
-            box.rect.x -= box.speed
+        a = randint(1, 3)
+        screen.fill("black")
+        t += 1
+        if t % 20 == 10 and not player.is_hold:
+            box = Box(sprite.image, m1_x_pos + m_width // 2 - 10, m1_y_pos + 115 * a)
+            all_sprites.add(box)
+            boxes.add(box)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -178,27 +196,29 @@ if __name__ == '__main__':
                 pygame.mixer.music.pause()
             else:
                 pygame.mixer.music.unpause()
-        if key[K_LEFT]:
+        if key[K_a]:
             player.move(-10, 0)
             player.dir = 0
             player.update()
-        elif key[K_RIGHT]:
+        elif key[K_d]:
             player.move(10, 0)
             player.dir = 2
             player.update()
-        elif key[K_DOWN]:
+        elif key[K_s]:
             player.move(0, 10)
             player.dir = 1
             player.update()
-        elif key[K_UP]:
+        elif key[K_w]:
             player.move(0, -10)
             player.dir = 3
             player.update()
         else:
             player.update()
         up_line.update()
-        for item in boxes:
 
+        for item in boxes:
+            if not player.is_hold:
+                item.rect.x -= item.speed
             if pygame.sprite.collide_mask(player, item) and player.is_hold == False and key[K_SPACE]:
                 player.is_hold = True
                 item.in_hand = True
@@ -215,12 +235,28 @@ if __name__ == '__main__':
                 if player.dir == 3:
                     item.rect.x = player.rect.x
                     item.rect.y = player.rect.y - item.rect.h
+            all_sprites.draw(screen)
             if pygame.sprite.collide_mask(item, table) and key[K_SPACE]:
                 item.kill()
                 player.is_hold = False
                 item.in_hand = False
                 up_line.update(b=1, s=30)
-
+            if (item.rect.x < dead_zone[0] + dead_zone[2] and item.rect.x + item.rect.w > dead_zone[0]) \
+                    and not item.in_hand:
+                cross_image = Cross(cross.image, item.rect.x, item.rect.y)
+                cross_group.add(cross_image)
+                cross_group.draw(screen)
+                pygame.display.flip()
+                clock.tick(FPS)
+                cross_image.kill()
+                cross_image = Cross(cross.image, item.rect.x, item.rect.y)
+                cross_group.add(cross_image)
+                cross_group.draw(screen)
+                pygame.display.flip()
+                clock.tick(FPS)
+                cross_image.kill()
+                item.kill()
+                up_line.update(l=-1)
 
         all_sprites.draw(screen)
         clock.tick(FPS)

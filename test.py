@@ -1,30 +1,13 @@
-class Cross(pygame.sprite.Sprite):
-    def __init__(self, sheet, x, y):
-        super().__init__(all_sprites)
-        self.image = sheet
-        self.rect = pygame.Rect(x, y, sheet.get_width(), sheet.get_height())
+sprite = pygame.sprite.Sprite()
+    sprite.image = pygame.image.load('data/gameover.png')
+    sprite.rect = sprite.image.get_rect()
+    all_sprites.add(sprite)
 
 
+x = -600
 
-cross_group = pygame.sprite.Group()
-
-
-cross = pygame.sprite.Sprite()
-cross.image = pygame.image.load('cross.png')
-
-
-if (item.rect.x < dead_zone.rect.x + dead_zone.rect.w or item.rect.x + item.rect.w > dead_zone.rect.x) and not item.in_hand:
-    cross_image = Cross(cross.image, item.rect.x, item.rect.y)
-    cross_group.add(cross_image)
-    cross_group.draw(screen)
-    pygame.display.flip()
-    clock.tick(FPS)
-    cross_image.kill()
-    cross_image = Cross(cross.image, item.rect.x, item.rect.y)
-    cross_group.add(cross_image)
-    cross_group.draw(screen)
-    pygame.display.flip()
-    clock.tick(FPS)
-    cross_image.kill()
-    item.kill()
-    up_line.update(l=-1)
+if x != 10:
+    sprite.rect = x, 0
+    all_sprites.draw(screen)
+    all_sprites.update()
+    x += 10

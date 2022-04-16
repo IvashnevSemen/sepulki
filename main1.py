@@ -128,7 +128,7 @@ m1_y_pos = height // 3
 m2_y_pos = m1_y_pos + 150
 m3_y_pos = m1_y_pos + 300
 
-dead_zone = (0, 200, 10, 10)
+dead_zone = (0, 200, 400, 300)
 
 
 if __name__ == '__main__':
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     # music
     pygame.mixer.music.load("was_wollen_wir_trinken.mp3")
     pygame.mixer.music.set_volume(vol)
-    pygame.mixer.music.play()
+    pygame.mixer.music.play(-1)
 
     cross = pygame.sprite.Sprite()
     cross.image = pygame.transform.scale(pygame.image.load('cross.png'), (40, 40))
@@ -229,33 +229,30 @@ if __name__ == '__main__':
                 if player.dir == 3:
                     item.rect.x = player.rect.x
                     item.rect.y = player.rect.y - item.rect.h
-            else:
-                if item.rect.x < m1_x_pos - 20:
-                    item.kill()
-                    draw_cross()
-                    up_line.lives -= 1
-                    up_line.update()
+
+            all_sprites.draw(screen)
 
             if pygame.sprite.collide_mask(item, table) and key[K_SPACE]:
                 item.kill()
                 player.is_hold = False
                 item.in_hand = False
                 up_line.update(b=1, s=30)
-            # if (item.rect.x < dead_zone[0] + dead_zone[2] or item.rect.x + item.rect.w > dead_zone[0]) and not item.in_hand:
-            #     cross_image = Cross(cross.image, item.rect.x, item.rect.y)
-            #     cross_group.add(cross_image)
-            #     cross_group.draw(screen)
-            #     pygame.display.flip()
-            #     clock.tick(FPS)
-            #     cross_image.kill()
-            #     cross_image = Cross(cross.image, item.rect.x, item.rect.y)
-            #     cross_group.add(cross_image)
-            #     cross_group.draw(screen)
-            #     pygame.display.flip()
-            #     clock.tick(FPS)
-            #     cross_image.kill()
-            #     item.kill()
-            #     up_line.update(l=-1)
+            if (item.rect.x < dead_zone[0] + dead_zone[2] and item.rect.x + item.rect.w > dead_zone[0]) and not item.in_hand:
+                print("sss")
+                cross_image = Cross(cross.image, item.rect.x, item.rect.y)
+                cross_group.add(cross_image)
+                cross_group.draw(screen)
+                pygame.display.flip()
+                clock.tick(FPS)
+                cross_image.kill()
+                cross_image = Cross(cross.image, item.rect.x, item.rect.y)
+                cross_group.add(cross_image)
+                cross_group.draw(screen)
+                pygame.display.flip()
+                clock.tick(FPS)
+                cross_image.kill()
+                item.kill()
+                up_line.update(l=-1)
 
 
         all_sprites.draw(screen)
