@@ -47,8 +47,18 @@ class Player(pygame.sprite.Sprite):
             self.rect = self.rect.move(x, y)
 
 
-class Box:
-    pass
+class Box(pygame.sprite.Sprite):
+    def __init__(self, sheet, x, y):
+        super().__init__(all_sprites)
+        self.image = sheet
+        self.rect = pygame.Rect(0, 0, sheet.get_width(), sheet.get_height())
+        self.x = x
+        self.y = y
+        self.speed = 5
+        self.visible = True
+
+    def update(self):
+        pass
 
 
 class UpLine:
@@ -84,6 +94,10 @@ if __name__ == '__main__':
     sprite = pygame.sprite.Sprite()
     sprite.image = pygame.image.load('worker.png')
     player = Player(sprite.image, 4, 4, 0, 0)
+
+    sprite = pygame.sprite.Sprite()
+    sprite.image = pygame.transform.scale(pygame.image.load('box.png'), (40, 40))
+    box = Box(sprite.image, 100, 100)
 
     all_sprites.add(player)
 
