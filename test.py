@@ -1,5 +1,5 @@
-def move(self, x, y):
-    if self.x + self.width + x <= width and self.x + x >= 0 \
-            and self.y + self.height + y <= height and self.y + y >= 0:
-        self.x += x
-        self.y += y
+if pygame.sprite.collide_mask(item, table):
+    item.kill()
+    player.is_hold = False
+    item.in_hand = False
+    up_line.update(b=1, s=30)

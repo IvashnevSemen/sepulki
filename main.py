@@ -2,6 +2,15 @@ import pygame
 from pygame.locals import *
 
 
+class Machine(pygame.sprite.Sprite):
+    def init(self, mach_img, x, y):
+        super().__init__(all_sprites)
+        self.image = mach_img
+        self.rect = pygame.Rect(x, y, mach_img.get_width(), mach_img.get_height())
+        self.x = x
+        self.y = y
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y, hp):
         super().__init__(all_sprites)
@@ -111,10 +120,14 @@ if __name__ == '__main__':
     all_sprites.add(player)
     boxes.add(box)
 
-    table = pygame.sprite.Sprite()
-    table.image = pygame.image.load('table.png')
-    table.rect.x = width // 2 - table.rect.w // 2
-    table.rect.x = width // 2 - table.rect.w // 2
+    tbl_width = 150
+    tbl_height = 100
+    tbl_x_pos = width // 2
+    tbl_y_pos = 100
+
+    sprite = pygame.sprite.Sprite()
+    sprite.image = pygame.transform.scale(pygame.image.load('table.png'), (tbl_width, tbl_height))
+    table = Machine(sprite.image, tbl_x_pos - tbl_width // 2, tbl_y_pos)
 
     running = True
     while running:
