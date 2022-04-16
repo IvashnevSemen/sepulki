@@ -78,7 +78,7 @@ if __name__ == '__main__':
     size = width, height = 800, 600
     screen = pygame.display.set_mode(size)
 
-    fps = 4
+    fps = 5
     clock = pygame.time.Clock()
 
     sprite = pygame.sprite.Sprite()
